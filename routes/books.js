@@ -107,4 +107,51 @@ router.post('/', auth, upload.single('cover_image'), async (req, res) => {
   }
 });
 
+// PUT /api/books/:id
+router.put('/:id', auth, upload.single('cover_image'), async (req, res) => {
+  const { error } = bookUpdateSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    if (req.file) unlinkSync(req.file.path);
+    return res.status(400).json({
+      message: 'Données invalides',
+      errors: error.details.map(d => d.message),
+    });
+  }
+  try {
+    const book = await Book.findByPk(req.params.id);
+    if (!book) return res.status(404).json({ message: 'Livre introuvable' });
+    const data = { ...req.body };
+    if (req.file) {
+      if (book.cover_image) {
+        const oldPath = join(__dirname, '../uploads', book.cover_image);
+        if (existsSync(oldPath)) unlinkSync(oldPath);
+      }
+      data.cover_image = req.file.filename;
+    }
+    await book.update(data);
+    const updated = await Book.findByPk(book.id, {
+      include: [{ model: Category, as: 'category', attributes: ['id', 'name'] }],
+    });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// DELETE /api/books/:id
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const book = await Book.findByPk(req.params.id);
+    if (!book) return res.status(404).json({ message: 'Livre introuvable' });
+    if (book.cover_image) {
+      const imgPath = join(__dirname, '../uploads', book.cover_image);
+      if (existsSync(imgPath)) unlinkSync(imgPath);
+    }
+    await book.destroy();
+    res.json({ message: 'Livre supprimé' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export default router;
