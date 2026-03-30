@@ -82,4 +82,29 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// POST /api/books
+router.post('/', auth, upload.single('cover_image'), async (req, res) => {
+  const { error } = bookSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    if (req.file) unlinkSync(req.file.path);
+    return res.status(400).json({
+      message: 'Données invalides',
+      errors: error.details.map(d => d.message),
+    });
+  }
+  try {
+    const data = { ...req.body };
+    if (req.file) data.cover_image = req.file.filename;
+    if (!data.available_quantity) data.available_quantity = data.quantity;
+    const book = await Book.create(data);
+    const withCategory = await Book.findByPk(book.id, {
+      include: [{ model: Category, as: 'category', attributes: ['id', 'name'] }],
+    });
+    res.status(201).json(withCategory);
+  } catch (err) {
+    if (req.file) unlinkSync(req.file.path);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export default router;
