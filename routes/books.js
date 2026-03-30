@@ -51,4 +51,35 @@ const bookUpdateSchema = bookSchema.fork(
   field => field.optional()
 );
 
+// GET /api/books
+router.get('/', auth, async (req, res) => {
+  try {
+    const { search, category_id, page = 1, limit = 10 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const where = {};
+    if (search) {
+      where[Op.or] = [
+        { title:  { [Op.like]: `%${search}%` } },
+        { author: { [Op.like]: `%${search}%` } },
+      ];
+    }
+    if (category_id) where.category_id = category_id;
+    const { count, rows } = await Book.findAndCountAll({
+      where,
+      include: [{ model: Category, as: 'category', attributes: ['id', 'name'] }],
+      limit: parseInt(limit),
+      offset,
+      order: [['createdAt', 'DESC']],
+    });
+    res.json({
+      total:      count,
+      page:       parseInt(page),
+      totalPages: Math.ceil(count / parseInt(limit)),
+      books:      rows,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export default router;
