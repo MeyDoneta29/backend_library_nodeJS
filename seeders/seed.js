@@ -7,12 +7,12 @@ dotenv.config();
 const seed = async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Connexion BDD établie');
+    console.log('Connexion BDD établie');
 
     await sequelize.sync({ alter: true });
-    console.log('✅ Tables synchronisées');
+    console.log('Tables synchronisées');
 
-    // ─── USERS ───────────────────────────────────────────────
+    //USERS
     const usersData = [
       { name: 'Administrateur',    email: 'admin@bibliotheque.com', password: 'admin123' },
       { name: 'Bibliothécaire Test', email: 'biblio@test.com',      password: 'biblio123' },
@@ -28,7 +28,7 @@ const seed = async () => {
       }
     }
 
-    // ─── CATEGORIES ──────────────────────────────────────────
+    //CATEGORIES
     const categoriesData = [
       { name: 'Roman',           description: 'Œuvres de fiction narrative longue' },
       { name: 'Science-Fiction', description: 'Littérature d\'anticipation et de futur' },
@@ -43,7 +43,7 @@ const seed = async () => {
       console.log(`  📂 Catégorie ${created ? 'créée' : 'déjà existante'} : ${c.name}`);
     }
 
-    // ─── BOOKS ───────────────────────────────────────────────
+    //BOOKS
     const booksData = [
       {
         title: 'Le Petit Prince',
@@ -124,7 +124,7 @@ const seed = async () => {
       console.log(`  📖 Livre ${created ? 'créé' : 'déjà existant'} : ${b.title}`);
     }
 
-    // ─── MEMBERS ─────────────────────────────────────────────
+    //MEMBERS
     const membersData = [
       {
         first_name: 'Aminata', last_name: 'Diallo',
