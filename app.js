@@ -6,6 +6,7 @@ import categoriesRoutes from './routes/categories.js';
 import booksRoutes from './routes/books.js';
 import statsRoutes from './routes/stats.js';
 import memberRoutes from './routes/members.js';
+import borrowRoutes from './routes/borrows.js';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use('/api/categories', categoriesRoutes);
 app.use('/api/books', booksRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/members', memberRoutes);
+app.use('/api/borrows', borrowRoutes);
 
 // Middleware erreur global
 app.use((err, req, res, next) => {
