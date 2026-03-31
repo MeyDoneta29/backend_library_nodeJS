@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
-import { sequelize, User, Category, Book, Member } from '../models/index.js';
+import { sequelize, User, Category, Book, Member, Borrow } from '../models/index.js';
 
 dotenv.config();
 
@@ -12,38 +12,38 @@ const seed = async () => {
     await sequelize.sync({ alter: true });
     console.log('Tables synchronisées');
 
-    //USERS
+    // USERS
     const usersData = [
-      { name: 'Administrateur',    email: 'admin@bibliotheque.com', password: 'admin123' },
-      { name: 'Bibliothécaire Test', email: 'biblio@test.com',      password: 'biblio123' },
+      { name: 'Administrateur', email: 'admin@bibliotheque.com', password: 'admin123' },
+      { name: 'Bibliothécaire Test', email: 'biblio@test.com', password: 'biblio123' },
     ];
 
     for (const u of usersData) {
       const exists = await User.findOne({ where: { email: u.email } });
       if (!exists) {
         await User.create({ ...u, password: await bcrypt.hash(u.password, 10) });
-        console.log(`  👤 User créé : ${u.email}`);
+        console.log(`User créé : ${u.email}`);
       } else {
-        console.log(`  ⏭️  User déjà existant : ${u.email}`);
+        console.log(`User déjà existant : ${u.email}`);
       }
     }
 
-    //CATEGORIES
+    // CATEGORIES
     const categoriesData = [
-      { name: 'Roman',           description: 'Œuvres de fiction narrative longue' },
+      { name: 'Roman', description: 'Œuvres de fiction narrative longue' },
       { name: 'Science-Fiction', description: 'Littérature d\'anticipation et de futur' },
-      { name: 'Histoire',        description: 'Ouvrages historiques et biographies' },
-      { name: 'Informatique',    description: 'Programmation, réseaux et systèmes' },
+      { name: 'Histoire', description: 'Ouvrages historiques et biographies' },
+      { name: 'Informatique', description: 'Programmation, réseaux et systèmes' },
     ];
 
     const categories = {};
     for (const c of categoriesData) {
       const [category, created] = await Category.findOrCreate({ where: { name: c.name }, defaults: c });
       categories[c.name] = category;
-      console.log(`  📂 Catégorie ${created ? 'créée' : 'déjà existante'} : ${c.name}`);
+      console.log(`Catégorie ${created ? 'créée' : 'déjà existante'} : ${c.name}`);
     }
 
-    //BOOKS
+    // BOOKS
     const booksData = [
       {
         title: 'Le Petit Prince',
@@ -121,10 +121,10 @@ const seed = async () => {
 
     for (const b of booksData) {
       const [, created] = await Book.findOrCreate({ where: { isbn: b.isbn }, defaults: b });
-      console.log(`  📖 Livre ${created ? 'créé' : 'déjà existant'} : ${b.title}`);
+      console.log(`Livre ${created ? 'créé' : 'déjà existant'} : ${b.title}`);
     }
 
-    //MEMBERS
+    // MEMBERS
     const membersData = [
       {
         first_name: 'Aminata', last_name: 'Diallo',
@@ -155,17 +155,69 @@ const seed = async () => {
 
     for (const m of membersData) {
       const [, created] = await Member.findOrCreate({ where: { email: m.email }, defaults: m });
-      console.log(`  👥 Membre ${created ? 'créé' : 'déjà existant'} : ${m.first_name} ${m.last_name}`);
+      console.log(`Membre ${created ? 'créé' : 'déjà existant'} : ${m.first_name} ${m.last_name}`);
     }
 
-    console.log('\n🎉 Seeder terminé avec succès !');
-    console.log('─────────────────────────────────────');
-    console.log('  Connexion admin → admin@bibliotheque.com / admin123');
-    console.log('─────────────────────────────────────');
+    // BORROWS  ← ici, AVANT process.exit(0)
+    const borrowsData = [
+      {
+        member_id: 1,
+        book_id: 1,
+        borrow_date: new Date('2025-01-10'),
+        due_date: new Date('2025-01-24'),
+        return_date: new Date('2025-01-20'),
+        status: 'returned'
+      },
+      {
+        member_id: 2,
+        book_id: 3,
+        borrow_date: new Date('2025-01-15'),
+        due_date: new Date('2025-01-29'),
+        return_date: null,
+        status: 'borrowed'
+      },
+      {
+        member_id: 4,
+        book_id: 7,
+        borrow_date: new Date('2025-01-05'),
+        due_date: new Date('2025-01-19'),
+        return_date: null,
+        status: 'overdue'
+      },
+      {
+        member_id: 5,
+        book_id: 4,
+        borrow_date: new Date('2025-01-18'),
+        due_date: new Date('2025-02-01'),
+        return_date: null,
+        status: 'borrowed'
+      },
+    ];
+
+    for (const b of borrowsData) {
+      const existing = await Borrow.findOne({
+        where: {
+          member_id: b.member_id,
+          book_id: b.book_id,
+          borrow_date: b.borrow_date
+        }
+      });
+
+      if (!existing) {
+        await Borrow.create(b);
+        console.log(`Emprunt créé : membre ${b.member_id} → livre ${b.book_id}`);
+      } else {
+        console.log(`Emprunt déjà existant : membre ${b.member_id} → livre ${b.book_id}`);
+      }
+    }
+
+    // ← process.exit(0) tout à la fin
+    console.log('\nSeeder terminé avec succès !');
+    console.log('Connexion admin → admin@bibliotheque.com / admin123');
     process.exit(0);
 
   } catch (err) {
-    console.error('❌ Erreur seeder :', err.message);
+    console.error('Erreur seeder :', err.message);
     process.exit(1);
   }
 };
