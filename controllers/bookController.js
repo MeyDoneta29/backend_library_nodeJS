@@ -3,7 +3,7 @@ import { dirname, join, extname } from 'path';
 import { existsSync, mkdirSync, unlinkSync } from 'fs';
 import multer from 'multer';
 import { Op } from 'sequelize';
-import { Book, Category } from '../models/index.js';
+import { Book, Category, Borrow } from '../models/index.js';
 import { bookSchema, bookUpdateSchema } from '../validations/bookValidation.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -122,6 +122,7 @@ export const deleteBook = async (req, res) => {
       const imgPath = join(__dirname, '../uploads', book.cover_image);
       if (existsSync(imgPath)) unlinkSync(imgPath);
     }
+    await Borrow.destroy({ where: { book_id: book.id } });
     await book.destroy();
     return res.status(200).json({ message: 'Livre supprimé' });
   } catch (err) {
