@@ -1,6 +1,4 @@
-import Borrow from '../models/Borrow.js';
-import Member from '../models/Member.js';
-import Book from '../models/Book.js';
+import { Borrow, Member, Book } from '../models/index.js';
 import { borrowSchema } from '../validations/borrowValidation.js';
 
 
@@ -19,8 +17,8 @@ export const getBorrows = async (req, res) => {
     const { count, rows: borrows } = await Borrow.findAndCountAll({
       where,
       include: [
-        { model: Member, attributes: ['id', 'first_name', 'last_name', 'email'] },
-        { model: Book, attributes: ['id', 'title', 'author'] }
+        { model: Member, as: 'member', attributes: ['id', 'first_name', 'last_name', 'email'] },
+        { model: Book, as: 'book', attributes: ['id', 'title', 'author'] }
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),

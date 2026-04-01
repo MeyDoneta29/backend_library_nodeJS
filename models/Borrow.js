@@ -46,7 +46,7 @@ const Borrow = sequelize.define('Borrow', {
 });
 
 // Associations
-Borrow.belongsTo(Member, { foreignKey: 'member_id' });
-Borrow.belongsTo(Book, { foreignKey: 'book_id' });
+Borrow.belongsTo(Member, { foreignKey: 'member_id', as: 'member' });
+Borrow.belongsTo(Book, { foreignKey: 'book_id', as: 'book' });
 
 export default Borrow;

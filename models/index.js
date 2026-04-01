@@ -9,4 +9,7 @@ import Borrow from './Borrow.js';
 Category.hasMany(Book, { foreignKey: 'category_id', as: 'books' });
 Book.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
 
+Member.hasMany(Borrow, { foreignKey: 'member_id', as: 'borrows' });
+Book.hasMany(Borrow, { foreignKey: 'book_id', as: 'borrows' });
+
 export { sequelize, User, Category, Book, Member, Borrow };
