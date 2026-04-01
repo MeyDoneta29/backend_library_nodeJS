@@ -1,16 +1,13 @@
 import app from './app.js';
-import dotenv from 'dotenv';
 import sequelize from './config/database.js';
 
-dotenv.config();
+sequelize.authenticate()
+  .then(() => console.log('Connecté à la base de données'))
+  .catch(err => console.error('Erreur de connexion :', err));
 
-sequelize.sync({force: false})
-  .then(() => {
-    app.listen(process.env.PORT || 3000, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
-});
-    console.log('Database synchronized');
-  })
-  .catch((error) => {
-    console.error('Error synchronizing database:', error);
-  });
+sequelize.sync({ alter: true })
+  .then(() => console.log('Modèles synchronisés'))
+  .catch(err => console.error('Erreur de sync :', err));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Serveur lancé sur le port ${PORT}`));
